@@ -426,13 +426,13 @@
 
 <script>
 const SECTIONS = [
-  { id: 'food', label: '食事', icon: '🍱', color: '#e8f5e1', placeholder: '摂取量・食欲・嚥下の状態など' },
-  { id: 'excretion', label: '排泄', icon: '🚽', color: '#e1eff5', placeholder: '排尿・排便の回数・性状・自立度など' },
-  { id: 'medication', label: '内服', icon: '💊', color: '#f5e8e1', placeholder: '服薬状況・飲み忘れ・副作用など' },
-  { id: 'rest', label: '休息', icon: '🌙', color: '#ede1f5', placeholder: '睡眠の質・昼寝・疲労感など' },
-  { id: 'adl', label: 'ADL', icon: '🚶', color: '#f5f0e1', placeholder: '移動・更衣・入浴・整容の自立度' },
-  { id: 'conscious', label: '意識レベル', icon: '🧠', color: '#e1f5ee', placeholder: 'JCS・GCS・見当識・応答など' },
-  { id: 'skin', label: '皮膚状態', icon: '🔍', color: '#f5e1ed', placeholder: '褥瘡・発赤・浮腫・乾燥・発疹など' },
+  { id: 'food',        label: '食事',     icon: '🍱', color: '#e8f5e1', placeholder: '摂取量・食欲・嚥下の状態など' },
+  { id: 'excretion',  label: '排泄',     icon: '🚽', color: '#e1eff5', placeholder: '排尿・排便の回数・性状・自立度など' },
+  { id: 'medication', label: '内服',     icon: '💊', color: '#f5e8e1', placeholder: '服薬状況・飲み忘れ・副作用など' },
+  { id: 'rest',       label: '休息',     icon: '🌙', color: '#ede1f5', placeholder: '睡眠の質・昼寝・疲労感など' },
+  { id: 'adl',        label: 'ADL',      icon: '🚶', color: '#f5f0e1', placeholder: '移動・更衣・入浴・整容の自立度' },
+  { id: 'conscious',  label: '意識レベル', icon: '🧠', color: '#e1f5ee', placeholder: 'JCS・GCS・見当識・応答など' },
+  { id: 'skin',       label: '皮膚状態',  icon: '🔍', color: '#f5e1ed', placeholder: '褥瘡・発赤・浮腫・乾燥・発疹など' },
 ];
 
 let activeRec = null;
@@ -483,25 +483,34 @@ function clearField(id) {
 }
 
 function toggleMic(id) {
-  if (activeRec === id) { stopRec(); }
-  else { if (activeRec) stopRec(); startRec(id); }
+  if (activeRec === id) {
+    stopRec();
+  } else {
+    if (activeRec) stopRec();
+    startRec(id);
+  }
 }
 
 function startRec(id) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('音声入力はSafariでお使いください。'); return; }
+
   recognition = new SR();
   recognition.lang = 'ja-JP';
   recognition.continuous = true;
   recognition.interimResults = true;
   activeRec = id;
+
   const isComment = id === 'comment';
   const textEl = document.getElementById('text-' + id);
   const micBtn = document.getElementById('mic-' + id);
   const micLabel = document.getElementById('micLabel-' + id);
+
   micBtn.classList.add('recording');
   micLabel.textContent = '⏹ タップで停止';
+
   let base = textEl.value;
+
   recognition.onresult = function(e) {
     let interim = '';
     let finalPart = '';
@@ -510,13 +519,22 @@ function startRec(id) {
       else interim += e.results[i][0].transcript;
     }
     textEl.value = base + finalPart + interim;
-    if (finalPart) { base += finalPart; if (!isComment) checkContent(id); }
+    if (finalPart) {
+      base += finalPart;
+      if (!isComment) checkContent(id);
+    }
     textEl.scrollTop = textEl.scrollHeight;
   };
+
   recognition.onend = function() {
-    if (activeRec === id) { try { recognition.start(); } catch(e) { stopRec(); } }
+    if (activeRec === id) {
+      try { recognition.start(); } catch(e) { stopRec(); }
+    }
   };
-  recognition.onerror = function(e) { if (e.error !== 'no-speech') stopRec(); };
+  recognition.onerror = function(e) {
+    if (e.error !== 'no-speech') stopRec();
+  };
+
   try { recognition.start(); }
   catch(e) { alert('マイクの起動に失敗しました。ページをリロードしてお試しください。'); activeRec = null; }
 }
@@ -534,43 +552,104 @@ function stopRec() {
   activeRec = null;
 }
 
+// 総評文章を自動生成する関数
+function buildSoukai(items, comment, patient) {
+  var parts = [];
+
+  // 冒頭：訪問概要
+  parts.push('本日の訪問にて、' + patient + 'の状態観察を実施した。');
+
+  // 各項目の内容を要約して盛り込む
+  items.forEach(function(item) {
+    var text = item.text.replace(/。$/, '');
+    switch(item.label) {
+      case '食事':
+        parts.push('食事に関しては、' + text + '。');
+        break;
+      case '排泄':
+        parts.push('排泄面では、' + text + '。');
+        break;
+      case '内服':
+        parts.push('内服については、' + text + '。');
+        break;
+      case '休息':
+        parts.push('休息・睡眠に関しては、' + text + '。');
+        break;
+      case 'ADL':
+        parts.push('ADL（日常生活動作）については、' + text + '。');
+        break;
+      case '意識レベル':
+        parts.push('意識レベルは、' + text + '。');
+        break;
+      case '皮膚状態':
+        parts.push('皮膚状態は、' + text + '。');
+        break;
+      default:
+        parts.push(item.label + 'については、' + text + '。');
+    }
+  });
+
+  // 担当者コメントを盛り込む
+  if (comment) {
+    var c = comment.replace(/。$/, '');
+    parts.push('担当者所見として、' + c + '。');
+  }
+
+  // 締めの文
+  parts.push('引き続き各項目の経過観察を継続し、変化があれば速やかに対応する方針とする。');
+
+  return parts.join('');
+}
+
 function generateRecord() {
   if (activeRec) stopRec();
+
   const entries = SECTIONS.map(s => ({
-    label: s.label, icon: s.icon,
+    label: s.label,
+    icon: s.icon,
     text: document.getElementById('text-' + s.id).value.trim()
   })).filter(e => e.text);
+
   const comment = document.getElementById('text-comment').value.trim();
   const patient = document.getElementById('patientName').value.trim() || '患者様';
   const nurse = document.getElementById('nurseId').value.trim() || '担当看護師';
-  if (entries.length === 0) { alert('少なくとも1項目入力してください。'); return; }
+
+  if (entries.length === 0) {
+    alert('少なくとも1項目入力してください。');
+    return;
+  }
+
   const now = new Date();
   const dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
   const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+
   document.getElementById('generateBtn').disabled = true;
   document.getElementById('loadingWrap').classList.add('visible');
   document.getElementById('outputSection').classList.remove('visible');
   document.getElementById('errorMsg').style.display = 'none';
+
   const formattedItems = entries.map(function(e) {
     var text = e.text;
-    if (text && !text.endsWith('。') && !text.endsWith('）') && !text.endsWith(')')) { text += '。'; }
+    if (text && !text.endsWith('。') && !text.endsWith('）') && !text.endsWith(')')) {
+      text += '。';
+    }
     text = text.charAt(0).toUpperCase() + text.slice(1);
     return { label: e.label, icon: e.icon, text: text };
   });
-  var soukaiParts = [];
-  soukaiParts.push('本日の訪問にて、' + formattedItems.length + '項目の観察を実施。');
-  formattedItems.forEach(function(item) { soukaiParts.push(item.label + 'について記録あり。'); });
-  if (comment) { soukaiParts.push('担当者所見：' + comment + (comment.endsWith('。') ? '' : '。')); }
-  soukaiParts.push('引き続き経過観察を継続する。');
-  var soukaiText = soukaiParts.join('');
+
+  // 総評を自動生成（全入力内容を盛り込んだ文章）
+  var soukaiText = buildSoukai(formattedItems, comment, patient);
+
   var meta = '<div class="output-meta">📅 ' + dateStr + ' ' + timeStr + '　👤 ' + patient + '　✍️ ' + nurse + '</div>';
   var items = formattedItems.map(function(item){
     return '<div class="out-item"><div class="out-item-label">' + item.icon + ' ' + item.label + '</div><div class="out-item-text">' + item.text + '</div></div>';
   }).join('');
   var soukai = '<div class="out-soukai"><div class="out-soukai-label">📝 総評</div><div class="out-soukai-text">' + soukaiText + '</div></div>';
+
   document.getElementById('outputBody').innerHTML = meta + items + soukai;
   document.getElementById('outputSection').classList.add('visible');
   window._outputData = { items: formattedItems, soukai: soukaiText, patient: patient, nurse: nurse, dateStr: dateStr, timeStr: timeStr };
+
   document.getElementById('loadingWrap').classList.remove('visible');
   document.getElementById('generateBtn').disabled = false;
   document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
