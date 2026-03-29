@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>看護記録 音声入力 | Hopas</title>
+<title>è¨é² é³å£°å¥å | Hopas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
@@ -18,6 +18,9 @@
     --surface: #ffffff;
     --rec: #c0392b;
     --rec-pale: #fde8e6;
+    --rehab-accent: #2c5f7c;
+    --rehab-accent-light: #3a7fa8;
+    --rehab-accent-pale: #d4e4f0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +32,7 @@
     padding-bottom: 40px;
   }
 
-  /* ヘッダー */
+  /* ãããã¼ */
   header {
     background: var(--accent);
     color: white;
@@ -38,11 +41,47 @@
     top: 0;
     z-index: 50;
     box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    transition: background 0.3s;
   }
+  header.rehab-mode { background: var(--rehab-accent); }
   header h1 { font-size: 15px; font-weight: 700; }
   header .sub { font-size: 10px; opacity: 0.7; margin-top: 2px; }
 
-  /* 患者バー */
+  /* ã¿ããã¼ */
+  .tab-bar {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 0;
+    text-align: center;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    position: relative;
+    transition: color 0.2s;
+  }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+  }
+  .tab-btn[data-tab="rehab"].active { color: var(--rehab-accent); }
+  .tab-btn[data-tab="rehab"].active::after { background: var(--rehab-accent); }
+
+  /* æ£èãã¼ */
   .patient-bar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -66,14 +105,18 @@
   }
   .patient-bar input:focus { border-color: var(--accent); }
 
-  /* メインコンテンツ */
+  /* ã¡ã¤ã³ã³ã³ãã³ã */
   .container {
     max-width: 640px;
     margin: 0 auto;
     padding: 16px 14px;
   }
 
-  /* 項目カード */
+  /* ã¿ãã³ã³ãã³ã */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* é ç®ã«ã¼ã */
   .section-card {
     background: var(--surface);
     border: 1.5px solid var(--border);
@@ -84,6 +127,8 @@
   }
   .section-card.has-content { border-color: var(--accent-light); }
   .section-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-pale); }
+  .rehab-mode .section-card.has-content { border-color: var(--rehab-accent-light); }
+  .rehab-mode .section-card.open { border-color: var(--rehab-accent); box-shadow: 0 0 0 3px var(--rehab-accent-pale); }
 
   .card-head {
     display: flex;
@@ -111,6 +156,7 @@
     display: none;
   }
   .section-card.has-content .card-badge { display: inline; }
+
   .card-arrow {
     font-size: 12px;
     color: var(--text-muted);
@@ -124,7 +170,7 @@
   }
   .section-card.open .card-body { display: block; }
 
-  /* マイクボタン（小） */
+  /* ãã¤ã¯ãã¿ã³ */
   .mic-row {
     display: flex;
     gap: 8px;
@@ -202,14 +248,16 @@
   }
   .card-textarea:focus { border-color: var(--accent); }
 
-  /* 総評セクション */
+  /* ç·è©ã»ã¯ã·ã§ã³ */
   .soukai-card {
     background: var(--accent);
     border-radius: 14px;
     padding: 18px 16px;
     margin-bottom: 16px;
     color: white;
+    transition: background 0.3s;
   }
+  .soukai-card.rehab-mode { background: var(--rehab-accent); }
   .soukai-label {
     font-size: 11px;
     font-weight: 700;
@@ -261,7 +309,7 @@
   .soukai-textarea::placeholder { color: rgba(255,255,255,0.4); }
   .soukai-textarea:focus { border-color: rgba(255,255,255,0.6); }
 
-  /* 生成ボタン */
+  /* çæãã¿ã³ */
   .btn-generate {
     width: 100%;
     background: var(--accent);
@@ -280,8 +328,10 @@
   .btn-generate:hover { background: var(--accent-light); }
   .btn-generate:active { transform: scale(0.98); }
   .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-generate.rehab-mode { background: var(--rehab-accent); }
+  .btn-generate.rehab-mode:hover { background: var(--rehab-accent-light); }
 
-  /* 出力エリア */
+  /* åºåã¨ãªã¢ */
   .output-section {
     background: var(--surface);
     border: 1.5px solid var(--border);
@@ -354,7 +404,7 @@
   }
   .out-soukai-text { font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-line; }
 
-  /* ローディング */
+  /* ã­ã¼ãã£ã³ã° */
   .loading-wrap {
     display: none;
     text-align: center;
@@ -386,108 +436,196 @@
 </head>
 <body>
 
-<header>
-  <h1>🏥 看護記録 音声入力</h1>
-  <div class="sub">Hopas 訪問看護ステーション</div>
+<header id="appHeader">
+  <h1 id="headerTitle">ð¥ çè­·è¨é² é³å£°å¥å</h1>
+  <div class="sub">Hopas è¨ªåçè­·ã¹ãã¼ã·ã§ã³</div>
 </header>
 
+<!-- ã¿ããã¼ -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="nursing" onclick="switchTab('nursing')">ð¥ çè­·è¨é²</button>
+  <button class="tab-btn" data-tab="rehab" onclick="switchTab('rehab')">ðï¸ ãªãããªè¨é²</button>
+</div>
+
 <div class="patient-bar">
-  <label>患者名</label>
-  <input type="text" id="patientName" placeholder="山田 太郎 様">
-  <label>担当者</label>
-  <input type="text" id="nurseId" placeholder="看護師A">
+  <label>æ£èå</label>
+  <input type="text" id="patientName" placeholder="å±±ç° å¤ªé æ§">
+  <label id="staffLabel">æå½è</label>
+  <input type="text" id="nurseId" placeholder="çè­·å¸«A">
 </div>
 
 <div class="container">
 
-  <!-- 項目カード -->
-  <div id="cards"></div>
+  <!-- ===== çè­·è¨é²ã¿ã ===== -->
+  <div class="tab-content active" id="tab-nursing">
+    <div id="cards-nursing"></div>
 
-  <!-- 感想セクション -->
-  <div class="soukai-card">
-    <div class="soukai-label">💬 担当者コメント・感想</div>
-    <button class="soukai-mic-btn" id="mic-comment" onclick="toggleMic('comment')">
-      <div class="mic-dot"></div>
-      <span id="micLabel-comment">🎙 音声入力</span>
-    </button>
-    <textarea class="soukai-textarea" id="text-comment" placeholder="全体を通した感想・気になった点など" rows="3"></textarea>
-  </div>
-
-  <!-- 生成ボタン -->
-  <button class="btn-generate" id="generateBtn" onclick="generateRecord()">
-    ✨ 看護記録を生成する
-  </button>
-
-  <!-- ローディング -->
-  <div class="loading-wrap" id="loadingWrap">
-    <div class="spinner"></div>
-    <p>看護記録を生成中…</p>
-  </div>
-
-  <!-- 出力 -->
-  <div class="output-section" id="outputSection">
-    <div class="output-top">
-      <div class="output-top-title">📋 看護記録</div>
-      <button class="btn-copy" onclick="copyOutput()">コピー</button>
+    <div class="soukai-card" id="soukai-nursing">
+      <div class="soukai-label">ð¬ æå½èã³ã¡ã³ãã»ææ³</div>
+      <button class="soukai-mic-btn" id="mic-n-comment" onclick="toggleMic('n-comment')">
+        <div class="mic-dot"></div>
+        <span id="micLabel-n-comment">ð é³å£°å¥å</span>
+      </button>
+      <textarea class="soukai-textarea" id="text-n-comment" placeholder="å¨ä½ãéããææ³ã»æ°ã«ãªã£ãç¹ãªã©" rows="3"></textarea>
     </div>
-    <div class="output-inner">
-      <div id="outputBody"></div>
-      <div class="error-msg" id="errorMsg"></div>
+
+    <button class="btn-generate" id="generateBtn-nursing" onclick="generateRecord('nursing')">
+      â¨ çè­·è¨é²ãçæãã
+    </button>
+
+    <div class="loading-wrap" id="loadingWrap-nursing">
+      <div class="spinner"></div>
+      <p>çè­·è¨é²ãçæä¸­â¦</p>
+    </div>
+
+    <div class="output-section" id="outputSection-nursing">
+      <div class="output-top">
+        <div class="output-top-title">ð çè­·è¨é²</div>
+        <button class="btn-copy" onclick="copyOutput('nursing')">ã³ãã¼</button>
+      </div>
+      <div class="output-inner">
+        <div id="outputBody-nursing"></div>
+        <div class="error-msg" id="errorMsg-nursing"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ãªãããªè¨é²ã¿ã ===== -->
+  <div class="tab-content" id="tab-rehab">
+    <div id="cards-rehab"></div>
+
+    <div class="soukai-card rehab-mode" id="soukai-rehab">
+      <div class="soukai-label">ð¬ æå½èã³ã¡ã³ãã»æè¦</div>
+      <button class="soukai-mic-btn" id="mic-r-comment" onclick="toggleMic('r-comment')">
+        <div class="mic-dot"></div>
+        <span id="micLabel-r-comment">ð é³å£°å¥å</span>
+      </button>
+      <textarea class="soukai-textarea" id="text-r-comment" placeholder="å¨ä½ãéããæè¦ã»æ¬¡åã®æ¹éãªã©" rows="3"></textarea>
+    </div>
+
+    <button class="btn-generate rehab-mode" id="generateBtn-rehab" onclick="generateRecord('rehab')">
+      â¨ ãªãããªè¨é²ãçæãã
+    </button>
+
+    <div class="loading-wrap" id="loadingWrap-rehab">
+      <div class="spinner"></div>
+      <p>ãªãããªè¨é²ãçæä¸­â¦</p>
+    </div>
+
+    <div class="output-section" id="outputSection-rehab">
+      <div class="output-top">
+        <div class="output-top-title">ð ãªãããªè¨é²</div>
+        <button class="btn-copy" onclick="copyOutput('rehab')">ã³ãã¼</button>
+      </div>
+      <div class="output-inner">
+        <div id="outputBody-rehab"></div>
+        <div class="error-msg" id="errorMsg-rehab"></div>
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-const SECTIONS = [
-  { id: 'food',        label: '食事',     icon: '🍱', color: '#e8f5e1', placeholder: '摂取量・食欲・嚥下の状態など' },
-  { id: 'excretion',  label: '排泄',     icon: '🚽', color: '#e1eff5', placeholder: '排尿・排便の回数・性状・自立度など' },
-  { id: 'medication', label: '内服',     icon: '💊', color: '#f5e8e1', placeholder: '服薬状況・飲み忘れ・副作用など' },
-  { id: 'rest',       label: '休息',     icon: '🌙', color: '#ede1f5', placeholder: '睡眠の質・昼寝・疲労感など' },
-  { id: 'adl',        label: 'ADL',      icon: '🚶', color: '#f5f0e1', placeholder: '移動・更衣・入浴・整容の自立度' },
-  { id: 'conscious',  label: '意識レベル', icon: '🧠', color: '#e1f5ee', placeholder: 'JCS・GCS・見当識・応答など' },
-  { id: 'skin',       label: '皮膚状態',  icon: '🔍', color: '#f5e1ed', placeholder: '褥瘡・発赤・浮腫・乾燥・発疹など' },
+// ===== çè­·è¨é²ã®é ç® =====
+var NURSING_SECTIONS = [
+  { id: 'n-food',        label: 'é£äº',     icon: 'ð±', color: '#e8f5e1', placeholder: 'æåéã»é£æ¬²ã»å¥ä¸ã®ç¶æãªã©' },
+  { id: 'n-excretion',  label: 'ææ³',     icon: 'ð½', color: '#e1eff5', placeholder: 'æå°¿ã»æä¾¿ã®åæ°ã»æ§ç¶ã»èªç«åº¦ãªã©' },
+  { id: 'n-medication', label: 'åæ',     icon: 'ð', color: '#f5e8e1', placeholder: 'æè¬ç¶æ³ã»é£²ã¿å¿ãã»å¯ä½ç¨ãªã©' },
+  { id: 'n-rest',       label: 'ä¼æ¯',     icon: 'ð', color: '#ede1f5', placeholder: 'ç¡ç ã®è³ªã»æ¼å¯ã»ç²å´æãªã©' },
+  { id: 'n-adl',        label: 'ADL',      icon: 'ð¶', color: '#f5f0e1', placeholder: 'ç§»åã»æ´è¡£ã»å¥æµ´ã»æ´å®¹ã®èªç«åº¦' },
+  { id: 'n-conscious',  label: 'æè­ã¬ãã«', icon: 'ð§ ', color: '#e1f5ee', placeholder: 'JCSã»GCSã»è¦å½è­ã»å¿ç­ãªã©' },
+  { id: 'n-skin',       label: 'ç®èç¶æ',  icon: 'ð', color: '#f5e1ed', placeholder: 'è¤¥ç¡ã»çºèµ¤ã»æµ®è«ã»ä¹¾ç¥ã»çºç¹ãªã©' },
 ];
 
-let activeRec = null;
-let recognition = null;
+// ===== ãªãããªè¨é²ã®é ç® =====
+var REHAB_SECTIONS = [
+  { id: 'r-rehab_content', label: 'ãªãããªåå®¹', icon: 'ðï¸', color: '#e1eff5', placeholder: 'å®æ½ããè¨ç·´ã»ãã­ã°ã©ã åå®¹' },
+  { id: 'r-rom',           label: 'ROMï¼é¢ç¯å¯ååï¼', icon: 'ð¦´', color: '#f5f0e1', placeholder: 'åé¢ç¯ã®å¯ååã»å¶éã®æç¡' },
+  { id: 'r-muscle',        label: 'ç­å',         icon: 'ðª', color: '#e8f5e1', placeholder: 'MMTã»ç­åã®è©ä¾¡ã»å·¦å³å·®ãªã©' },
+  { id: 'r-walking',       label: 'æ­©è¡ã»ç§»å',    icon: 'ð¶', color: '#ede1f5', placeholder: 'æ­©è¡è·é¢ã»æ§å¼ã»è£å©å·ã»å®å®æ§ãªã©' },
+  { id: 'r-balance',       label: 'ãã©ã³ã¹',     icon: 'âï¸', color: '#f5e8e1', placeholder: 'åº§ä½ã»ç«ä½ãã©ã³ã¹ã»è»¢åãªã¹ã¯ãªã©' },
+  { id: 'r-adl',           label: 'ADL',          icon: 'ð ', color: '#e1f5ee', placeholder: 'FIMã»BIã»åºæ¬åä½ã®èªç«åº¦' },
+  { id: 'r-pain',          label: 'ç¼ç',         icon: 'ð£', color: '#f5e1ed', placeholder: 'NRSã»é¨ä½ã»æ§ç¶ã»å¢æªå å­ãªã©' },
+];
 
-// カードを生成
-const cardsEl = document.getElementById('cards');
-SECTIONS.forEach(s => {
-  const div = document.createElement('div');
-  div.className = 'section-card';
-  div.id = 'card-' + s.id;
-  div.innerHTML =
-    '<div class="card-head" onclick="toggleCard(\'' + s.id + '\')">' +
-      '<div class="card-icon" style="background:' + s.color + '">' + s.icon + '</div>' +
-      '<div class="card-title">' + s.label + '</div>' +
-      '<span class="card-badge">入力済</span>' +
-      '<span class="card-arrow">▼</span>' +
-    '</div>' +
-    '<div class="card-body">' +
-      '<div class="mic-row">' +
-        '<button class="mic-btn" id="mic-' + s.id + '" onclick="toggleMic(\'' + s.id + '\')">' +
-          '<div class="mic-dot"></div>' +
-          '<span id="micLabel-' + s.id + '">🎙 音声入力</span>' +
-        '</button>' +
-        '<button class="btn-clear" onclick="clearField(\'' + s.id + '\')">クリア</button>' +
+var currentTab = 'nursing';
+var activeRec = null;
+var recognition = null;
+
+// ===== ã¿ãåãæ¿ã =====
+function switchTab(tab) {
+  if (activeRec) stopRec();
+  currentTab = tab;
+
+  // ã¿ããã¿ã³
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+  });
+
+  // ã¿ãã³ã³ãã³ã
+  document.querySelectorAll('.tab-content').forEach(function(tc) {
+    tc.classList.toggle('active', tc.id === 'tab-' + tab);
+  });
+
+  // ãããã¼è²
+  var header = document.getElementById('appHeader');
+  var title = document.getElementById('headerTitle');
+  if (tab === 'rehab') {
+    header.classList.add('rehab-mode');
+    title.textContent = 'ðï¸ ãªãããªè¨é² é³å£°å¥å';
+    document.getElementById('staffLabel').textContent = 'æå½è';
+    document.getElementById('nurseId').placeholder = 'ã»ã©ãã¹ãA';
+  } else {
+    header.classList.remove('rehab-mode');
+    title.textContent = 'ð¥ çè­·è¨é² é³å£°å¥å';
+    document.getElementById('staffLabel').textContent = 'æå½è';
+    document.getElementById('nurseId').placeholder = 'çè­·å¸«A';
+  }
+}
+
+// ===== ã«ã¼ãçæ =====
+function buildCards(sections, containerId) {
+  var container = document.getElementById(containerId);
+  sections.forEach(function(s) {
+    var div = document.createElement('div');
+    div.className = 'section-card';
+    div.id = 'card-' + s.id;
+    div.innerHTML =
+      '<div class="card-head" onclick="toggleCard(\'' + s.id + '\')">' +
+        '<div class="card-icon" style="background:' + s.color + '">' + s.icon + '</div>' +
+        '<div class="card-title">' + s.label + '</div>' +
+        '<span class="card-badge">å¥åæ¸</span>' +
+        '<span class="card-arrow">â¼</span>' +
       '</div>' +
-      '<textarea class="card-textarea" id="text-' + s.id + '" placeholder="' + s.placeholder + '" rows="3" oninput="checkContent(\'' + s.id + '\')"></textarea>' +
-    '</div>';
-  cardsEl.appendChild(div);
-});
+      '<div class="card-body">' +
+        '<div class="mic-row">' +
+          '<button class="mic-btn" id="mic-' + s.id + '" onclick="toggleMic(\'' + s.id + '\')">' +
+            '<div class="mic-dot"></div>' +
+            '<span id="micLabel-' + s.id + '">ð é³å£°å¥å</span>' +
+          '</button>' +
+          '<button class="btn-clear" onclick="clearField(\'' + s.id + '\')">ã¯ãªã¢</button>' +
+        '</div>' +
+        '<textarea class="card-textarea" id="text-' + s.id + '" placeholder="' + s.placeholder + '" rows="3" oninput="checkContent(\'' + s.id + '\')"></textarea>' +
+      '</div>';
+    container.appendChild(div);
+  });
+}
+
+buildCards(NURSING_SECTIONS, 'cards-nursing');
+buildCards(REHAB_SECTIONS, 'cards-rehab');
 
 function toggleCard(id) {
-  const card = document.getElementById('card-' + id);
-  const isOpen = card.classList.contains('open');
-  document.querySelectorAll('.section-card.open').forEach(c => c.classList.remove('open'));
+  var card = document.getElementById('card-' + id);
+  var isOpen = card.classList.contains('open');
+  // åãã¿ãåã®ã«ã¼ãã ãéãã
+  card.parentElement.querySelectorAll('.section-card.open').forEach(function(c) { c.classList.remove('open'); });
   if (!isOpen) card.classList.add('open');
 }
 
 function checkContent(id) {
-  const card = document.getElementById('card-' + id);
-  const val = document.getElementById('text-' + id).value.trim();
+  var card = document.getElementById('card-' + id);
+  var val = document.getElementById('text-' + id).value.trim();
   if (val) card.classList.add('has-content');
   else card.classList.remove('has-content');
 }
@@ -497,7 +635,7 @@ function clearField(id) {
   checkContent(id);
 }
 
-// 音声入力
+// ===== é³å£°å¥å =====
 function toggleMic(id) {
   if (activeRec === id) {
     stopRec();
@@ -508,8 +646,8 @@ function toggleMic(id) {
 }
 
 function startRec(id) {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('音声入力はSafariでお使いください。'); return; }
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('é³å£°å¥åã¯Safariã§ãä½¿ããã ããã'); return; }
 
   recognition = new SR();
   recognition.lang = 'ja-JP';
@@ -517,20 +655,20 @@ function startRec(id) {
   recognition.interimResults = true;
   activeRec = id;
 
-  const isComment = id === 'comment';
-  const textEl = document.getElementById('text-' + id);
-  const micBtn = document.getElementById('mic-' + id);
-  const micLabel = document.getElementById('micLabel-' + id);
+  var isComment = id === 'n-comment' || id === 'r-comment';
+  var textEl = document.getElementById('text-' + id);
+  var micBtn = document.getElementById('mic-' + id);
+  var micLabel = document.getElementById('micLabel-' + id);
 
   micBtn.classList.add('recording');
-  micLabel.textContent = '⏹ タップで停止';
+  micLabel.textContent = 'â¹ ã¿ããã§åæ­¢';
 
-  let base = textEl.value;
+  var base = textEl.value;
 
   recognition.onresult = function(e) {
-    let interim = '';
-    let finalPart = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
+    var interim = '';
+    var finalPart = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) finalPart += e.results[i][0].transcript;
       else interim += e.results[i][0].transcript;
     }
@@ -552,148 +690,174 @@ function startRec(id) {
   };
 
   try { recognition.start(); }
-  catch(e) { alert('マイクの起動に失敗しました。ページをリロードしてお試しください。'); activeRec = null; }
+  catch(e) { alert('ãã¤ã¯ã®èµ·åã«å¤±æãã¾ããããã¼ã¸ããªã­ã¼ããã¦ãè©¦ããã ããã'); activeRec = null; }
 }
 
 function stopRec() {
   if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
   if (activeRec) {
-    const id = activeRec;
-    const micBtn = document.getElementById('mic-' + id);
-    const micLabel = document.getElementById('micLabel-' + id);
+    var id = activeRec;
+    var micBtn = document.getElementById('mic-' + id);
+    var micLabel = document.getElementById('micLabel-' + id);
     if (micBtn) { micBtn.classList.remove('recording'); }
-    if (micLabel) { micLabel.textContent = '🎙 音声入力'; }
-    if (id !== 'comment') checkContent(id);
+    if (micLabel) { micLabel.textContent = 'ð é³å£°å¥å'; }
+    var isComment = id === 'n-comment' || id === 'r-comment';
+    if (!isComment) checkContent(id);
   }
   activeRec = null;
 }
 
-// 総評文章を自動生成する関数
-function buildSoukai(items, comment, patient) {
+// ===== ç·è©æç« ãèªåçæ =====
+function buildSoukai(items, comment, patient, mode) {
   var parts = [];
+  if (mode === 'rehab') {
+    parts.push('æ¬æ¥ã®ãªãããªãã¼ã·ã§ã³ã«ã¦ã' + patient + 'ã«å¯¾ãä»¥ä¸ã®è¨ç·´ã»è©ä¾¡ãå®æ½ããã');
+  } else {
+    parts.push('æ¬æ¥ã®è¨ªåã«ã¦ã' + patient + 'ã®ç¶æè¦³å¯ãå®æ½ããã');
+  }
 
-  // 冒頭：訪問概要
-  parts.push('本日の訪問にて、' + patient + 'の状態観察を実施した。');
-
-  // 各項目の内容を要約して盛り込む
   items.forEach(function(item) {
-    // 入力テキストをそのまま活用して文章に組み込む
-    var text = item.text.replace(/。$/, '');  // 末尾の句点を一旦除去
-    switch(item.label) {
-      case '食事':
-        parts.push('食事に関しては、' + text + '。');
-        break;
-      case '排泄':
-        parts.push('排泄面では、' + text + '。');
-        break;
-      case '内服':
-        parts.push('内服については、' + text + '。');
-        break;
-      case '休息':
-        parts.push('休息・睡眠に関しては、' + text + '。');
-        break;
-      case 'ADL':
-        parts.push('ADL（日常生活動作）については、' + text + '。');
-        break;
-      case '意識レベル':
-        parts.push('意識レベルは、' + text + '。');
-        break;
-      case '皮膚状態':
-        parts.push('皮膚状態は、' + text + '。');
-        break;
-      default:
-        parts.push(item.label + 'については、' + text + '。');
+    var text = item.text.replace(/ã$/, '');
+    if (mode === 'rehab') {
+      switch(item.label) {
+        case 'ãªãããªåå®¹': parts.push('ãªãããªåå®¹ã¨ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ROMï¼é¢ç¯å¯ååï¼': parts.push('é¢ç¯å¯ååï¼ROMï¼ã¯ã' + text + 'ã'); break;
+        case 'ç­å': parts.push('ç­åé¢ã§ã¯ã' + text + 'ã'); break;
+        case 'æ­©è¡ã»ç§»å': parts.push('æ­©è¡ã»ç§»åã«ã¤ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ãã©ã³ã¹': parts.push('ãã©ã³ã¹è½åã¯ã' + text + 'ã'); break;
+        case 'ADL': parts.push('ADLï¼æ¥å¸¸çæ´»åä½ï¼ã«ã¤ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ç¼ç': parts.push('ç¼çã«é¢ãã¦ã¯ã' + text + 'ã'); break;
+        default: parts.push(item.label + 'ã«ã¤ãã¦ã¯ã' + text + 'ã');
+      }
+    } else {
+      switch(item.label) {
+        case 'é£äº': parts.push('é£äºã«é¢ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ææ³': parts.push('ææ³é¢ã§ã¯ã' + text + 'ã'); break;
+        case 'åæ': parts.push('åæã«ã¤ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ä¼æ¯': parts.push('ä¼æ¯ã»ç¡ç ã«é¢ãã¦ã¯ã' + text + 'ã'); break;
+        case 'ADL': parts.push('ADLï¼æ¥å¸¸çæ´»åä½ï¼ã«ã¤ãã¦ã¯ã' + text + 'ã'); break;
+        case 'æè­ã¬ãã«': parts.push('æè­ã¬ãã«ã¯ã' + text + 'ã'); break;
+        case 'ç®èç¶æ': parts.push('ç®èç¶æã¯ã' + text + 'ã'); break;
+        default: parts.push(item.label + 'ã«ã¤ãã¦ã¯ã' + text + 'ã');
+      }
     }
   });
 
-  // 担当者コメントを盛り込む
   if (comment) {
-    var c = comment.replace(/。$/, '');
-    parts.push('担当者所見として、' + c + '。');
+    var c = comment.replace(/ã$/, '');
+    parts.push('æå½èæè¦ã¨ãã¦ã' + c + 'ã');
   }
 
-  // 締めの文
-  parts.push('引き続き各項目の経過観察を継続し、変化があれば速やかに対応する方針とする。');
+  if (mode === 'rehab') {
+    parts.push('å¼ãç¶ããªãããªãã¼ã·ã§ã³ãç¶ç¶ããæ©è½æ¹åã»ç¶­æã«åªããæ¹éã¨ããã');
+  } else {
+    parts.push('å¼ãç¶ãåé ç®ã®çµéè¦³å¯ãç¶ç¶ããå¤åãããã°éããã«å¯¾å¿ããæ¹éã¨ããã');
+  }
 
   return parts.join('');
 }
 
-// 生成（APIキー不要・ローカル整形版）
-function generateRecord() {
+// ===== è¨é²çæ =====
+function generateRecord(mode) {
   if (activeRec) stopRec();
 
-  const entries = SECTIONS.map(s => ({
-    label: s.label,
-    icon: s.icon,
-    text: document.getElementById('text-' + s.id).value.trim()
-  })).filter(e => e.text);
+  var sections = (mode === 'rehab') ? REHAB_SECTIONS : NURSING_SECTIONS;
+  var commentId = (mode === 'rehab') ? 'r-comment' : 'n-comment';
 
-  const comment = document.getElementById('text-comment').value.trim();
-  const patient = document.getElementById('patientName').value.trim() || '患者様';
-  const nurse = document.getElementById('nurseId').value.trim() || '担当看護師';
+  var entries = sections.map(function(s) {
+    return {
+      label: s.label,
+      icon: s.icon,
+      text: document.getElementById('text-' + s.id).value.trim()
+    };
+  }).filter(function(e) { return e.text; });
+
+  var comment = document.getElementById('text-' + commentId).value.trim();
+  var patient = document.getElementById('patientName').value.trim() || 'æ£èæ§';
+  var nurse = document.getElementById('nurseId').value.trim() || (mode === 'rehab' ? 'æå½ã»ã©ãã¹ã' : 'æå½çè­·å¸«');
 
   if (entries.length === 0) {
-    alert('少なくとも1項目入力してください。');
+    alert('å°ãªãã¨ã1é ç®å¥åãã¦ãã ããã');
     return;
   }
 
-  const now = new Date();
-  const dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
-  const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  var now = new Date();
+  var dateStr = now.getFullYear() + 'å¹´' + (now.getMonth()+1) + 'æ' + now.getDate() + 'æ¥';
+  var timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
 
-  document.getElementById('generateBtn').disabled = true;
-  document.getElementById('loadingWrap').classList.add('visible');
-  document.getElementById('outputSection').classList.remove('visible');
-  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('generateBtn-' + mode).disabled = true;
+  document.getElementById('loadingWrap-' + mode).classList.add('visible');
+  document.getElementById('outputSection-' + mode).classList.remove('visible');
+  document.getElementById('errorMsg-' + mode).style.display = 'none';
 
-  // ローカル整形: 入力テキストを看護記録風に整える
-  const formattedItems = entries.map(function(e) {
+  var formattedItems = entries.map(function(e) {
     var text = e.text;
-    // 句点がなければ追加
-    if (text && !text.endsWith('。') && !text.endsWith('）') && !text.endsWith(')')) {
-      text += '。';
+    if (text && !text.endsWith('ã') && !text.endsWith('ï¼') && !text.endsWith(')')) {
+      text += 'ã';
     }
-    // 先頭を大文字的に整える
     text = text.charAt(0).toUpperCase() + text.slice(1);
     return { label: e.label, icon: e.icon, text: text };
   });
 
-  // 総評を自動生成（全入力内容を盛り込んだ文章）
-  var soukaiText = buildSoukai(formattedItems, comment, patient);
+  var soukaiText = buildSoukai(formattedItems, comment, patient, mode);
 
-  // 描画
-  var meta = '<div class="output-meta">📅 ' + dateStr + ' ' + timeStr + '　👤 ' + patient + '　✍️ ' + nurse + '</div>';
+  var modeLabel = (mode === 'rehab') ? 'ãªãããªè¨é²' : 'çè­·è¨é²';
+  var staffLabel = (mode === 'rehab') ? 'æå½' : 'âï¸ ';
+  var meta = '<div class="output-meta">ð ' + dateStr + ' ' + timeStr + 'ãð¤ ' + patient + 'ã' + staffLabel + nurse + '</div>';
   var items = formattedItems.map(function(item){
     return '<div class="out-item"><div class="out-item-label">' + item.icon + ' ' + item.label + '</div><div class="out-item-text">' + item.text + '</div></div>';
   }).join('');
-  var soukai = '<div class="out-soukai"><div class="out-soukai-label">📝 総評</div><div class="out-soukai-text">' + soukaiText + '</div></div>';
+  var soukai = '<div class="out-soukai"><div class="out-soukai-label">ð ç·è©</div><div class="out-soukai-text">' + soukaiText + '</div></div>';
 
-  document.getElementById('outputBody').innerHTML = meta + items + soukai;
-  document.getElementById('outputSection').classList.add('visible');
-  window._outputData = { items: formattedItems, soukai: soukaiText, patient: patient, nurse: nurse, dateStr: dateStr, timeStr: timeStr };
+  document.getElementById('outputBody-' + mode).innerHTML = meta + items + soukai;
+  document.getElementById('outputSection-' + mode).classList.add('visible');
 
-  document.getElementById('loadingWrap').classList.remove('visible');
-  document.getElementById('generateBtn').disabled = false;
-  document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+  // åºåãã¼ã¿ãä¿å­
+  window['_outputData_' + mode] = { items: formattedItems, soukai: soukaiText, patient: patient, nurse: nurse, dateStr: dateStr, timeStr: timeStr, mode: mode };
 
-  // Google Spreadsheet に送信
-  sendToSheet({
-    datetime: dateStr + ' ' + timeStr,
-    patient: patient,
-    nurse: nurse,
-    food: document.getElementById('text-food').value.trim(),
-    excretion: document.getElementById('text-excretion').value.trim(),
-    medication: document.getElementById('text-medication').value.trim(),
-    rest: document.getElementById('text-rest').value.trim(),
-    adl: document.getElementById('text-adl').value.trim(),
-    conscious: document.getElementById('text-conscious').value.trim(),
-    skin: document.getElementById('text-skin').value.trim(),
-    comment: comment,
-    soukai: soukaiText
-  });
+  document.getElementById('loadingWrap-' + mode).classList.remove('visible');
+  document.getElementById('generateBtn-' + mode).disabled = false;
+  document.getElementById('outputSection-' + mode).scrollIntoView({ behavior: 'smooth' });
+
+  // Google Spreadsheet ã«éä¿¡
+  var sheetData;
+  if (mode === 'rehab') {
+    sheetData = {
+      type: 'rehab',
+      datetime: dateStr + ' ' + timeStr,
+      patient: patient,
+      nurse: nurse,
+      rehab_content: document.getElementById('text-r-rehab_content').value.trim(),
+      rom: document.getElementById('text-r-rom').value.trim(),
+      muscle: document.getElementById('text-r-muscle').value.trim(),
+      walking: document.getElementById('text-r-walking').value.trim(),
+      balance: document.getElementById('text-r-balance').value.trim(),
+      adl: document.getElementById('text-r-adl').value.trim(),
+      pain: document.getElementById('text-r-pain').value.trim(),
+      comment: comment,
+      soukai: soukaiText
+    };
+  } else {
+    sheetData = {
+      type: 'nursing',
+      datetime: dateStr + ' ' + timeStr,
+      patient: patient,
+      nurse: nurse,
+      food: document.getElementById('text-n-food').value.trim(),
+      excretion: document.getElementById('text-n-excretion').value.trim(),
+      medication: document.getElementById('text-n-medication').value.trim(),
+      rest: document.getElementById('text-n-rest').value.trim(),
+      adl: document.getElementById('text-n-adl').value.trim(),
+      conscious: document.getElementById('text-n-conscious').value.trim(),
+      skin: document.getElementById('text-n-skin').value.trim(),
+      comment: comment,
+      soukai: soukaiText
+    };
+  }
+  sendToSheet(sheetData);
 }
 
-// Google Spreadsheet 送信
+// ===== Google Spreadsheet éä¿¡ =====
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxVfa2jyoTrcKhx5wh_RHd0P7xCt85u_P-0OGVZvSJMX_Tl8WbOeb3el27awRPxR2EZ8w/exec';
 
 function sendToSheet(data) {
@@ -721,25 +885,27 @@ function showSaveStatus(status) {
   if (status === 'saved') {
     el.style.background = '#d4edda';
     el.style.color = '#155724';
-    el.textContent = '✅ スプレッドシートに保存しました';
+    el.textContent = 'â ã¹ãã¬ããã·ã¼ãã«ä¿å­ãã¾ãã';
   } else {
     el.style.background = '#f8d7da';
     el.style.color = '#721c24';
-    el.textContent = '⚠ 保存に失敗しました';
+    el.textContent = 'â  ä¿å­ã«å¤±æãã¾ãã';
   }
   el.style.opacity = '1';
   setTimeout(function(){ el.style.opacity = '0'; }, 3000);
 }
 
-function copyOutput() {
-  if (!window._outputData) return;
-  const d = window._outputData;
-  const itemsText = d.items.map(function(i){ return '【' + i.label + '】\n' + i.text; }).join('\n\n');
-  const full = '▼ 看護記録 ' + d.dateStr + (d.timeStr ? ' ' + d.timeStr : '') + '\n患者：' + d.patient + '　担当：' + d.nurse + '\n\n' + itemsText + '\n\n【総評】\n' + d.soukai;
+// ===== ã³ãã¼ =====
+function copyOutput(mode) {
+  var d = window['_outputData_' + mode];
+  if (!d) return;
+  var modeLabel = (mode === 'rehab') ? 'ãªãããªè¨é²' : 'çè­·è¨é²';
+  var itemsText = d.items.map(function(i){ return 'ã' + i.label + 'ã\n' + i.text; }).join('\n\n');
+  var full = 'â¼ ' + modeLabel + ' ' + d.dateStr + (d.timeStr ? ' ' + d.timeStr : '') + '\næ£èï¼' + d.patient + 'ãæå½ï¼' + d.nurse + '\n\n' + itemsText + '\n\nãç·è©ã\n' + d.soukai;
   navigator.clipboard.writeText(full).then(function(){
-    const btn = document.querySelector('.btn-copy');
-    btn.textContent = '✓ コピー完了';
-    setTimeout(function(){ btn.textContent = 'コピー'; }, 2000);
+    var btn = document.querySelector('#outputSection-' + mode + ' .btn-copy');
+    btn.textContent = 'â ã³ãã¼å®äº';
+    setTimeout(function(){ btn.textContent = 'ã³ãã¼'; }, 2000);
   });
 }
 </script>
