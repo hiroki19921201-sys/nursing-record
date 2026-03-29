@@ -29,6 +29,7 @@
     padding-bottom: 40px;
   }
 
+  /* ヘッダー */
   header {
     background: var(--accent);
     color: white;
@@ -41,6 +42,7 @@
   header h1 { font-size: 15px; font-weight: 700; }
   header .sub { font-size: 10px; opacity: 0.7; margin-top: 2px; }
 
+  /* 患者バー */
   .patient-bar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -64,12 +66,14 @@
   }
   .patient-bar input:focus { border-color: var(--accent); }
 
+  /* メインコンテンツ */
   .container {
     max-width: 640px;
     margin: 0 auto;
     padding: 16px 14px;
   }
 
+  /* 項目カード */
   .section-card {
     background: var(--surface);
     border: 1.5px solid var(--border);
@@ -120,6 +124,7 @@
   }
   .section-card.open .card-body { display: block; }
 
+  /* マイクボタン（小） */
   .mic-row {
     display: flex;
     gap: 8px;
@@ -197,6 +202,7 @@
   }
   .card-textarea:focus { border-color: var(--accent); }
 
+  /* 総評セクション */
   .soukai-card {
     background: var(--accent);
     border-radius: 14px;
@@ -255,6 +261,7 @@
   .soukai-textarea::placeholder { color: rgba(255,255,255,0.4); }
   .soukai-textarea:focus { border-color: rgba(255,255,255,0.6); }
 
+  /* 生成ボタン */
   .btn-generate {
     width: 100%;
     background: var(--accent);
@@ -274,6 +281,7 @@
   .btn-generate:active { transform: scale(0.98); }
   .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* 出力エリア */
   .output-section {
     background: var(--surface);
     border: 1.5px solid var(--border);
@@ -346,6 +354,7 @@
   }
   .out-soukai-text { font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-line; }
 
+  /* ローディング */
   .loading-wrap {
     display: none;
     text-align: center;
@@ -391,8 +400,10 @@
 
 <div class="container">
 
+  <!-- 項目カード -->
   <div id="cards"></div>
 
+  <!-- 感想セクション -->
   <div class="soukai-card">
     <div class="soukai-label">💬 担当者コメント・感想</div>
     <button class="soukai-mic-btn" id="mic-comment" onclick="toggleMic('comment')">
@@ -402,15 +413,18 @@
     <textarea class="soukai-textarea" id="text-comment" placeholder="全体を通した感想・気になった点など" rows="3"></textarea>
   </div>
 
+  <!-- 生成ボタン -->
   <button class="btn-generate" id="generateBtn" onclick="generateRecord()">
     ✨ 看護記録を生成する
   </button>
 
+  <!-- ローディング -->
   <div class="loading-wrap" id="loadingWrap">
     <div class="spinner"></div>
     <p>看護記録を生成中…</p>
   </div>
 
+  <!-- 出力 -->
   <div class="output-section" id="outputSection">
     <div class="output-top">
       <div class="output-top-title">📋 看護記録</div>
@@ -438,6 +452,7 @@ const SECTIONS = [
 let activeRec = null;
 let recognition = null;
 
+// カードを生成
 const cardsEl = document.getElementById('cards');
 SECTIONS.forEach(s => {
   const div = document.createElement('div');
@@ -482,6 +497,7 @@ function clearField(id) {
   checkContent(id);
 }
 
+// 音声入力
 function toggleMic(id) {
   if (activeRec === id) {
     stopRec();
@@ -561,7 +577,8 @@ function buildSoukai(items, comment, patient) {
 
   // 各項目の内容を要約して盛り込む
   items.forEach(function(item) {
-    var text = item.text.replace(/。$/, '');
+    // 入力テキストをそのまま活用して文章に組み込む
+    var text = item.text.replace(/。$/, '');  // 末尾の句点を一旦除去
     switch(item.label) {
       case '食事':
         parts.push('食事に関しては、' + text + '。');
@@ -601,6 +618,7 @@ function buildSoukai(items, comment, patient) {
   return parts.join('');
 }
 
+// 生成（APIキー不要・ローカル整形版）
 function generateRecord() {
   if (activeRec) stopRec();
 
@@ -628,11 +646,14 @@ function generateRecord() {
   document.getElementById('outputSection').classList.remove('visible');
   document.getElementById('errorMsg').style.display = 'none';
 
+  // ローカル整形: 入力テキストを看護記録風に整える
   const formattedItems = entries.map(function(e) {
     var text = e.text;
+    // 句点がなければ追加
     if (text && !text.endsWith('。') && !text.endsWith('）') && !text.endsWith(')')) {
       text += '。';
     }
+    // 先頭を大文字的に整える
     text = text.charAt(0).toUpperCase() + text.slice(1);
     return { label: e.label, icon: e.icon, text: text };
   });
@@ -640,6 +661,7 @@ function generateRecord() {
   // 総評を自動生成（全入力内容を盛り込んだ文章）
   var soukaiText = buildSoukai(formattedItems, comment, patient);
 
+  // 描画
   var meta = '<div class="output-meta">📅 ' + dateStr + ' ' + timeStr + '　👤 ' + patient + '　✍️ ' + nurse + '</div>';
   var items = formattedItems.map(function(item){
     return '<div class="out-item"><div class="out-item-label">' + item.icon + ' ' + item.label + '</div><div class="out-item-text">' + item.text + '</div></div>';
@@ -653,6 +675,60 @@ function generateRecord() {
   document.getElementById('loadingWrap').classList.remove('visible');
   document.getElementById('generateBtn').disabled = false;
   document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+
+  // Google Spreadsheet に送信
+  sendToSheet({
+    datetime: dateStr + ' ' + timeStr,
+    patient: patient,
+    nurse: nurse,
+    food: document.getElementById('text-food').value.trim(),
+    excretion: document.getElementById('text-excretion').value.trim(),
+    medication: document.getElementById('text-medication').value.trim(),
+    rest: document.getElementById('text-rest').value.trim(),
+    adl: document.getElementById('text-adl').value.trim(),
+    conscious: document.getElementById('text-conscious').value.trim(),
+    skin: document.getElementById('text-skin').value.trim(),
+    comment: comment,
+    soukai: soukaiText
+  });
+}
+
+// Google Spreadsheet 送信
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxVfa2jyoTrcKhx5wh_RHd0P7xCt85u_P-0OGVZvSJMX_Tl8WbOeb3el27awRPxR2EZ8w/exec';
+
+function sendToSheet(data) {
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function() {
+    showSaveStatus('saved');
+  }).catch(function(err) {
+    console.error('Sheet save error:', err);
+    showSaveStatus('error');
+  });
+}
+
+function showSaveStatus(status) {
+  var el = document.getElementById('saveStatus');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'saveStatus';
+    el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:100;transition:opacity 0.3s;font-family:inherit;';
+    document.body.appendChild(el);
+  }
+  if (status === 'saved') {
+    el.style.background = '#d4edda';
+    el.style.color = '#155724';
+    el.textContent = '✅ スプレッドシートに保存しました';
+  } else {
+    el.style.background = '#f8d7da';
+    el.style.color = '#721c24';
+    el.textContent = '⚠ 保存に失敗しました';
+  }
+  el.style.opacity = '1';
+  setTimeout(function(){ el.style.opacity = '0'; }, 3000);
 }
 
 function copyOutput() {
