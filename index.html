@@ -265,8 +265,14 @@
     opacity: 0.75;
     margin-bottom: 10px;
   }
+  .soukai-mic-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
   .soukai-mic-btn {
-    width: 100%;
+    flex: 1;
     background: rgba(255,255,255,0.15);
     border: 1.5px dashed rgba(255,255,255,0.5);
     border-radius: 8px;
@@ -281,9 +287,21 @@
     font-weight: 600;
     color: rgba(255,255,255,0.85);
     transition: all 0.2s;
-    margin-bottom: 10px;
     -webkit-appearance: none;
   }
+  .soukai-clear-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .soukai-clear-btn:hover { border-color: #ff6b6b; color: #ff6b6b; background: rgba(192,57,43,0.2); }
   .soukai-mic-btn:hover { background: rgba(255,255,255,0.25); border-color: white; }
   .soukai-mic-btn.recording {
     background: rgba(192,57,43,0.35);
@@ -462,10 +480,13 @@
 
     <div class="soukai-card" id="soukai-nursing">
       <div class="soukai-label">💬 担当者コメント・感想</div>
-      <button class="soukai-mic-btn" id="mic-n-comment" onclick="toggleMic('n-comment')">
-        <div class="mic-dot"></div>
-        <span id="micLabel-n-comment">🎙 音声入力</span>
-      </button>
+      <div class="soukai-mic-row">
+        <button class="soukai-mic-btn" id="mic-n-comment" onclick="toggleMic('n-comment')">
+          <div class="mic-dot"></div>
+          <span id="micLabel-n-comment">🎙 音声入力</span>
+        </button>
+        <button class="soukai-clear-btn" onclick="document.getElementById('text-n-comment').value=''">クリア</button>
+      </div>
       <textarea class="soukai-textarea" id="text-n-comment" placeholder="全体を通した感想・気になった点など" rows="3"></textarea>
     </div>
 
