@@ -21,6 +21,9 @@
     --rehab-accent: #2c5f7c;
     --rehab-accent-light: #3a7fa8;
     --rehab-accent-pale: #d4e4f0;
+    --nursingb-accent: #6b4f8a;
+    --nursingb-accent-light: #8a6bab;
+    --nursingb-accent-pale: #e4d8f0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,6 +47,7 @@
     transition: background 0.3s;
   }
   header.rehab-mode { background: var(--rehab-accent); }
+  header.nursingb-mode { background: var(--nursingb-accent); }
   header h1 { font-size: 15px; font-weight: 700; }
   header .sub { font-size: 10px; opacity: 0.7; margin-top: 2px; }
 
@@ -58,7 +62,7 @@
     padding: 12px 0;
     text-align: center;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     border: none;
     background: none;
@@ -80,6 +84,8 @@
   }
   .tab-btn[data-tab="rehab"].active { color: var(--rehab-accent); }
   .tab-btn[data-tab="rehab"].active::after { background: var(--rehab-accent); }
+  .tab-btn[data-tab="nursing_b"].active { color: var(--nursingb-accent); }
+  .tab-btn[data-tab="nursing_b"].active::after { background: var(--nursingb-accent); }
 
   /* 患者バー */
   .patient-bar {
@@ -129,6 +135,8 @@
   .section-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-pale); }
   .rehab-mode .section-card.has-content { border-color: var(--rehab-accent-light); }
   .rehab-mode .section-card.open { border-color: var(--rehab-accent); box-shadow: 0 0 0 3px var(--rehab-accent-pale); }
+  .nursingb-mode .section-card.has-content { border-color: var(--nursingb-accent-light); }
+  .nursingb-mode .section-card.open { border-color: var(--nursingb-accent); box-shadow: 0 0 0 3px var(--nursingb-accent-pale); }
 
   .card-head {
     display: flex;
@@ -258,6 +266,7 @@
     transition: background 0.3s;
   }
   .soukai-card.rehab-mode { background: var(--rehab-accent); }
+  .soukai-card.nursingb-mode { background: var(--nursingb-accent); }
   .soukai-label {
     font-size: 11px;
     font-weight: 700;
@@ -348,6 +357,8 @@
   .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-generate.rehab-mode { background: var(--rehab-accent); }
   .btn-generate.rehab-mode:hover { background: var(--rehab-accent-light); }
+  .btn-generate.nursingb-mode { background: var(--nursingb-accent); }
+  .btn-generate.nursingb-mode:hover { background: var(--nursingb-accent-light); }
 
   /* 出力エリア */
   .output-section {
@@ -462,6 +473,7 @@
 <!-- タブバー -->
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="nursing" onclick="switchTab('nursing')">🏥 看護記録</button>
+  <button class="tab-btn" data-tab="nursing_b" onclick="switchTab('nursing_b')">📋 看護記録 B</button>
   <button class="tab-btn" data-tab="rehab" onclick="switchTab('rehab')">🏋️ リハビリ記録</button>
 </div>
 
@@ -485,7 +497,7 @@
           <div class="mic-dot"></div>
           <span id="micLabel-n-comment">🎙 音声入力</span>
         </button>
-        <button class="soukai-clear-btn" onclick="document.getElementById('text-n-comment').value=''">クリア</button>
+        <button class="soukai-clear-btn" onclick="document.getElementById('text-n-comment').value=''"クリア</button>
       </div>
       <textarea class="soukai-textarea" id="text-n-comment" placeholder="全体を通した感想・気になった点など" rows="3"></textarea>
     </div>
@@ -511,16 +523,56 @@
     </div>
   </div>
 
+  <!-- ===== 看護記録Bタブ ===== -->
+  <div class="tab-content" id="tab-nursing_b">
+    <div id="cards-nursing_b"></div>
+
+    <div class="soukai-card nursingb-mode" id="soukai-nursing_b">
+      <div class="soukai-label">💬 担当者コメント・所見</div>
+      <div class="soukai-mic-row">
+        <button class="soukai-mic-btn" id="mic-b-comment" onclick="toggleMic('b-comment')">
+          <div class="mic-dot"></div>
+          <span id="micLabel-b-comment">🎙 音声入力</span>
+        </button>
+        <button class="soukai-clear-btn" onclick="document.getElementById('text-b-comment').value=''"クリア</button>
+      </div>
+      <textarea class="soukai-textarea" id="text-b-comment" placeholder="全体を通した所見・気になった点など" rows="3"></textarea>
+    </div>
+
+    <button class="btn-generate nursingb-mode" id="generateBtn-nursing_b" onclick="generateRecord('nursing_b')">
+      ✨ 看護記録Bを生成する
+    </button>
+
+    <div class="loading-wrap" id="loadingWrap-nursing_b">
+      <div class="spinner"></div>
+      <p>看護記録Bを生成中…</p>
+    </div>
+
+    <div class="output-section" id="outputSection-nursing_b">
+      <div class="output-top">
+        <div class="output-top-title">📋 看護記録 B</div>
+        <button class="btn-copy" onclick="copyOutput('nursing_b')">コピー</button>
+      </div>
+      <div class="output-inner">
+        <div id="outputBody-nursing_b"></div>
+        <div class="error-msg" id="errorMsg-nursing_b"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== リハビリ記録タブ ===== -->
   <div class="tab-content" id="tab-rehab">
     <div id="cards-rehab"></div>
 
     <div class="soukai-card rehab-mode" id="soukai-rehab">
       <div class="soukai-label">💬 担当者コメント・所見</div>
-      <button class="soukai-mic-btn" id="mic-r-comment" onclick="toggleMic('r-comment')">
-        <div class="mic-dot"></div>
-        <span id="micLabel-r-comment">🎙 音声入力</span>
-      </button>
+      <div class="soukai-mic-row">
+        <button class="soukai-mic-btn" id="mic-r-comment" onclick="toggleMic('r-comment')">
+          <div class="mic-dot"></div>
+          <span id="micLabel-r-comment">🎙 音声入力</span>
+        </button>
+        <button class="soukai-clear-btn" onclick="document.getElementById('text-r-comment').value=''"クリア</button>
+      </div>
       <textarea class="soukai-textarea" id="text-r-comment" placeholder="全体を通した所見・次回の方針など" rows="3"></textarea>
     </div>
 
@@ -559,15 +611,27 @@ var NURSING_SECTIONS = [
   { id: 'n-skin',       label: '皮膚状態',  icon: '🔍', color: '#f5e1ed', placeholder: '褥瘡・発赤・浮腫・乾燥・発疹など' },
 ];
 
+// ===== 看護記録Bの項目 =====
+var NURSING_B_SECTIONS = [
+  { id: 'b-vital',     label: 'バイタルサイン', icon: '❤️', color: '#f5e1e1', placeholder: '体温・血圧・脈拍・SpO2・呼吸数など' },
+  { id: 'b-conscious', label: '意識レベル',    icon: '🧠', color: '#e1f5ee', placeholder: 'JCS・GCS・見当識・応答など' },
+  { id: 'b-symptom',   label: '症状',         icon: '🩺', color: '#e1eff5', placeholder: '主訴・現在の症状・変化など' },
+  { id: 'b-trouble',   label: '生活上の困りごと', icon: '💭', color: '#f5f0e1', placeholder: '日常生活での困難・不安・要望など' },
+  { id: 'b-note',      label: '備考',         icon: '📝', color: '#ede1f5', placeholder: 'その他特記事項・連絡事項など' },
+];
+
 // ===== リハビリ記録の項目 =====
 var REHAB_SECTIONS = [
-  { id: 'r-rehab_content', label: 'リハビリ内容', icon: '🏋️', color: '#e1eff5', placeholder: '実施した訓練・プログラム内容' },
-  { id: 'r-rom',           label: 'ROM（関節可動域）', icon: '🦴', color: '#f5f0e1', placeholder: '各関節の可動域・制限の有無' },
-  { id: 'r-muscle',        label: '筋力',         icon: '💪', color: '#e8f5e1', placeholder: 'MMT・筋力の評価・左右差など' },
-  { id: 'r-walking',       label: '歩行・移動',    icon: '🚶', color: '#ede1f5', placeholder: '歩行距離・様式・補助具・安定性など' },
-  { id: 'r-balance',       label: 'バランス',     icon: '⚖️', color: '#f5e8e1', placeholder: '座位・立位バランス・転倒リスクなど' },
-  { id: 'r-adl',           label: 'ADL',          icon: '🏠', color: '#e1f5ee', placeholder: 'FIM・BI・基本動作の自立度' },
-  { id: 'r-pain',          label: '疼痛',         icon: '😣', color: '#f5e1ed', placeholder: 'NRS・部位・性状・増悪因子など' },
+  { id: 'r-food',        label: '食事',       icon: '🍱', color: '#e8f5e1', placeholder: '摂取量・食欲・嚥下の状態など' },
+  { id: 'r-excretion',  label: '排泄',       icon: '🚽', color: '#e1eff5', placeholder: '排尿・排便の回数・性状・自立度など' },
+  { id: 'r-medication', label: '内服',       icon: '💊', color: '#f5e8e1', placeholder: '服薬状況・飲み忘れ・副作用など' },
+  { id: 'r-rest',       label: '休息',       icon: '🌙', color: '#ede1f5', placeholder: '睡眠の質・昼寝・疲労感など' },
+  { id: 'r-adl',        label: 'ADL',        icon: '🚶', color: '#f5f0e1', placeholder: '移動・更衣・入浴・整容の自立度' },
+  { id: 'r-conscious',  label: '意識レベル',  icon: '🧠', color: '#e1f5ee', placeholder: 'JCS・GCS・見当識・応答など' },
+  { id: 'r-skin',       label: '皮膚状態',   icon: '🔍', color: '#f5e1ed', placeholder: '褥瘡・発赤・浮腫・乾燥・発疹など' },
+  { id: 'r-walking',    label: '外歩行',     icon: '🚶‍♂️', color: '#e1e8f5', placeholder: '歩行距離・様式・補助具・安定性など' },
+  { id: 'r-exercise',   label: '全身体操',   icon: '🤸', color: '#f5e8e8', placeholder: '実施内容・回数・可動域など' },
+  { id: 'r-massage',    label: 'マッサージ',  icon: '💆', color: '#e8e1f5', placeholder: '部位・手技・時間・反応など' },
 ];
 
 var currentTab = 'nursing';
@@ -579,33 +643,34 @@ function switchTab(tab) {
   if (activeRec) stopRec();
   currentTab = tab;
 
-  // タブボタン
   document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
   });
 
-  // タブコンテンツ
   document.querySelectorAll('.tab-content').forEach(function(tc) {
     tc.classList.toggle('active', tc.id === 'tab-' + tab);
   });
 
-  // ヘッダー色
   var header = document.getElementById('appHeader');
   var title = document.getElementById('headerTitle');
+  header.classList.remove('rehab-mode', 'nursingb-mode');
   if (tab === 'rehab') {
     header.classList.add('rehab-mode');
     title.textContent = '🏋️ リハビリ記録 音声入力';
     document.getElementById('staffLabel').textContent = '担当者';
     document.getElementById('nurseId').placeholder = 'セラピストA';
+  } else if (tab === 'nursing_b') {
+    header.classList.add('nursingb-mode');
+    title.textContent = '📋 看護記録 B 音声入力';
+    document.getElementById('staffLabel').textContent = '担当者';
+    document.getElementById('nurseId').placeholder = '看護師A';
   } else {
-    header.classList.remove('rehab-mode');
     title.textContent = '🏥 看護記録 音声入力';
     document.getElementById('staffLabel').textContent = '担当者';
     document.getElementById('nurseId').placeholder = '看護師A';
   }
 }
 
-// ===== カード生成 =====
 function buildCards(sections, containerId) {
   var container = document.getElementById(containerId);
   sections.forEach(function(s) {
@@ -634,12 +699,12 @@ function buildCards(sections, containerId) {
 }
 
 buildCards(NURSING_SECTIONS, 'cards-nursing');
+buildCards(NURSING_B_SECTIONS, 'cards-nursing_b');
 buildCards(REHAB_SECTIONS, 'cards-rehab');
 
 function toggleCard(id) {
   var card = document.getElementById('card-' + id);
   var isOpen = card.classList.contains('open');
-  // 同じタブ内のカードだけ閉じる
   card.parentElement.querySelectorAll('.section-card.open').forEach(function(c) { c.classList.remove('open'); });
   if (!isOpen) card.classList.add('open');
 }
@@ -656,7 +721,6 @@ function clearField(id) {
   checkContent(id);
 }
 
-// ===== 音声入力 =====
 function toggleMic(id) {
   if (activeRec === id) {
     stopRec();
@@ -676,7 +740,7 @@ function startRec(id) {
   recognition.interimResults = true;
   activeRec = id;
 
-  var isComment = id === 'n-comment' || id === 'r-comment';
+  var isComment = id === 'n-comment' || id === 'r-comment' || id === 'b-comment';
   var textEl = document.getElementById('text-' + id);
   var micBtn = document.getElementById('mic-' + id);
   var micLabel = document.getElementById('micLabel-' + id);
@@ -722,7 +786,7 @@ function stopRec() {
     var micLabel = document.getElementById('micLabel-' + id);
     if (micBtn) { micBtn.classList.remove('recording'); }
     if (micLabel) { micLabel.textContent = '🎙 音声入力'; }
-    var isComment = id === 'n-comment' || id === 'r-comment';
+    var isComment = id === 'n-comment' || id === 'r-comment' || id === 'b-comment';
     if (!isComment) checkContent(id);
   }
   activeRec = null;
@@ -733,6 +797,8 @@ function buildSoukai(items, comment, patient, mode) {
   var parts = [];
   if (mode === 'rehab') {
     parts.push('本日のリハビリテーションにて、' + patient + 'に対し以下の訓練・評価を実施した。');
+  } else if (mode === 'nursing_b') {
+    parts.push('本日の訪問にて、' + patient + 'の状態観察・アセスメントを実施した。');
   } else {
     parts.push('本日の訪問にて、' + patient + 'の状態観察を実施した。');
   }
@@ -741,13 +807,25 @@ function buildSoukai(items, comment, patient, mode) {
     var text = item.text.replace(/。$/, '');
     if (mode === 'rehab') {
       switch(item.label) {
-        case 'リハビリ内容': parts.push('リハビリ内容としては、' + text + '。'); break;
-        case 'ROM（関節可動域）': parts.push('関節可動域（ROM）は、' + text + '。'); break;
-        case '筋力': parts.push('筋力面では、' + text + '。'); break;
-        case '歩行・移動': parts.push('歩行・移動については、' + text + '。'); break;
-        case 'バランス': parts.push('バランス能力は、' + text + '。'); break;
+        case '食事': parts.push('食事に関しては、' + text + '。'); break;
+        case '排泄': parts.push('排泄面では、' + text + '。'); break;
+        case '内服': parts.push('内服については、' + text + '。'); break;
+        case '休息': parts.push('休息・睡眠に関しては、' + text + '。'); break;
         case 'ADL': parts.push('ADL（日常生活動作）については、' + text + '。'); break;
-        case '疼痛': parts.push('疼痛に関しては、' + text + '。'); break;
+        case '意識レベル': parts.push('意識レベルは、' + text + '。'); break;
+        case '皮膚状態': parts.push('皮膚状態は、' + text + '。'); break;
+        case '外歩行': parts.push('外歩行については、' + text + '。'); break;
+        case '全身体操': parts.push('全身体操では、' + text + '。'); break;
+        case 'マッサージ': parts.push('マッサージに関しては、' + text + '。'); break;
+        default: parts.push(item.label + 'については、' + text + '。');
+      }
+    } else if (mode === 'nursing_b') {
+      switch(item.label) {
+        case 'バイタルサイン': parts.push('バイタルサインは、' + text + '。'); break;
+        case '意識レベル': parts.push('意識レベルは、' + text + '。'); break;
+        case '症状': parts.push('症状としては、' + text + '。'); break;
+        case '生活上の困りごと': parts.push('生活上の困りごととして、' + text + '。'); break;
+        case '備考': parts.push('なお、' + text + '。'); break;
         default: parts.push(item.label + 'については、' + text + '。');
       }
     } else {
@@ -771,6 +849,8 @@ function buildSoukai(items, comment, patient, mode) {
 
   if (mode === 'rehab') {
     parts.push('引き続きリハビリテーションを継続し、機能改善・維持に努める方針とする。');
+  } else if (mode === 'nursing_b') {
+    parts.push('引き続き経過観察を継続し、状態変化に速やかに対応する方針とする。');
   } else {
     parts.push('引き続き各項目の経過観察を継続し、変化があれば速やかに対応する方針とする。');
   }
@@ -782,8 +862,17 @@ function buildSoukai(items, comment, patient, mode) {
 function generateRecord(mode) {
   if (activeRec) stopRec();
 
-  var sections = (mode === 'rehab') ? REHAB_SECTIONS : NURSING_SECTIONS;
-  var commentId = (mode === 'rehab') ? 'r-comment' : 'n-comment';
+  var sections, commentId;
+  if (mode === 'rehab') {
+    sections = REHAB_SECTIONS;
+    commentId = 'r-comment';
+  } else if (mode === 'nursing_b') {
+    sections = NURSING_B_SECTIONS;
+    commentId = 'b-comment';
+  } else {
+    sections = NURSING_SECTIONS;
+    commentId = 'n-comment';
+  }
 
   var entries = sections.map(function(s) {
     return {
@@ -822,7 +911,11 @@ function generateRecord(mode) {
 
   var soukaiText = buildSoukai(formattedItems, comment, patient, mode);
 
-  var modeLabel = (mode === 'rehab') ? 'リハビリ記録' : '看護記録';
+  var modeLabel;
+  if (mode === 'rehab') modeLabel = 'リハビリ記録';
+  else if (mode === 'nursing_b') modeLabel = '看護記録 B';
+  else modeLabel = '看護記録';
+
   var staffLabel = (mode === 'rehab') ? '担当' : '✍️ ';
   var meta = '<div class="output-meta">📅 ' + dateStr + ' ' + timeStr + '　👤 ' + patient + '　' + staffLabel + nurse + '</div>';
   var items = formattedItems.map(function(item){
@@ -833,7 +926,6 @@ function generateRecord(mode) {
   document.getElementById('outputBody-' + mode).innerHTML = meta + items + soukai;
   document.getElementById('outputSection-' + mode).classList.add('visible');
 
-  // 出力データを保存
   window['_outputData_' + mode] = { items: formattedItems, soukai: soukaiText, patient: patient, nurse: nurse, dateStr: dateStr, timeStr: timeStr, mode: mode };
 
   document.getElementById('loadingWrap-' + mode).classList.remove('visible');
@@ -848,13 +940,30 @@ function generateRecord(mode) {
       datetime: dateStr + ' ' + timeStr,
       patient: patient,
       nurse: nurse,
-      rehab_content: document.getElementById('text-r-rehab_content').value.trim(),
-      rom: document.getElementById('text-r-rom').value.trim(),
-      muscle: document.getElementById('text-r-muscle').value.trim(),
-      walking: document.getElementById('text-r-walking').value.trim(),
-      balance: document.getElementById('text-r-balance').value.trim(),
+      food: document.getElementById('text-r-food').value.trim(),
+      excretion: document.getElementById('text-r-excretion').value.trim(),
+      medication: document.getElementById('text-r-medication').value.trim(),
+      rest: document.getElementById('text-r-rest').value.trim(),
       adl: document.getElementById('text-r-adl').value.trim(),
-      pain: document.getElementById('text-r-pain').value.trim(),
+      conscious: document.getElementById('text-r-conscious').value.trim(),
+      skin: document.getElementById('text-r-skin').value.trim(),
+      walking: document.getElementById('text-r-walking').value.trim(),
+      exercise: document.getElementById('text-r-exercise').value.trim(),
+      massage: document.getElementById('text-r-massage').value.trim(),
+      comment: comment,
+      soukai: soukaiText
+    };
+  } else if (mode === 'nursing_b') {
+    sheetData = {
+      type: 'nursing_b',
+      datetime: dateStr + ' ' + timeStr,
+      patient: patient,
+      nurse: nurse,
+      vital: document.getElementById('text-b-vital').value.trim(),
+      conscious: document.getElementById('text-b-conscious').value.trim(),
+      symptom: document.getElementById('text-b-symptom').value.trim(),
+      trouble: document.getElementById('text-b-trouble').value.trim(),
+      note: document.getElementById('text-b-note').value.trim(),
       comment: comment,
       soukai: soukaiText
     };
@@ -920,7 +1029,10 @@ function showSaveStatus(status) {
 function copyOutput(mode) {
   var d = window['_outputData_' + mode];
   if (!d) return;
-  var modeLabel = (mode === 'rehab') ? 'リハビリ記録' : '看護記録';
+  var modeLabel;
+  if (mode === 'rehab') modeLabel = 'リハビリ記録';
+  else if (mode === 'nursing_b') modeLabel = '看護記録 B';
+  else modeLabel = '看護記録';
   var itemsText = d.items.map(function(i){ return '【' + i.label + '】\n' + i.text; }).join('\n\n');
   var full = '▼ ' + modeLabel + ' ' + d.dateStr + (d.timeStr ? ' ' + d.timeStr : '') + '\n患者：' + d.patient + '　担当：' + d.nurse + '\n\n' + itemsText + '\n\n【総評】\n' + d.soukai;
   navigator.clipboard.writeText(full).then(function(){
